@@ -1,0 +1,11 @@
+{
+    "window.title": "${activeEditorShort} — Explosion",
+    "search.exclude": {
+        "**/.git": true,
+        "**/node_modules": true,
+        "**/tmp": true,
+        "**/out": true
+    },
+    "haxe.executable": "C:/Users/maria/ceramic/tools/haxe.cmd",
+    "haxelib.executable": "C:/Users/maria/ceramic/tools/haxelib.cmd"
+}
