@@ -1,5 +1,6 @@
 package;
 
+import ceramic.Timer;
 import ceramic.Color;
 import ceramic.Group;
 import ceramic.Quad;
@@ -15,6 +16,7 @@ class GameScene extends Scene {
     var tilemap:Tilemap;
     var player:Player;
     var index:Int;
+    var bomb:Bomb;
 
     var ldtkName = Tilemaps.WORLD_MAP_GRID_VANIA_LAYOUT;
 
@@ -51,7 +53,7 @@ class GameScene extends Scene {
 
     override function create() {
         // assets.texture(Images.TILES).filter = NEAREST;
-        assets.texture(Images.CHARACTERS).filter = NEAREST;
+        // assets.texture(Images.CHARACTERS).filter = NEAREST;
 
         initMap();
         initPlayer();
@@ -93,8 +95,18 @@ class GameScene extends Scene {
         player.pos(0,0);
         container.add(player);
 
+        
+        // bomb = new Bomb(assets);
+        // bomb.pos(0,0);
+
+        // bomb.depth = 10;
+        // container.add(bomb);
+        
+
+        player.onBombDisplay(this, bombDisplay);
         player.onBombExplode(this, wallExplosed);
     }
+    
 
     function initPhysics() {
 
@@ -111,19 +123,45 @@ class GameScene extends Scene {
 
     }
 
+    
+    function bombDisplay(posX:Int, posY:Int) {
+        var indexT = Math.floor(posX/16) + Math.floor(posY/16) * levelData.columns;
+        var row = indexT % 8;
+        var col = Math.floor(indexT / 8);
+        
+        var g = grounds.items.filter(g -> (g.y == col * TILE_SIZE) && (g.x == row * TILE_SIZE))[0];
+        g.animation = 'GROUND_TRIGGER_BLUE';
+    }
+
     // si joueur alors joueur explose
     // etape 1 : explose les murs alentour (x+-1 y+-1) : sans couleur
     // etape 2 : explose tous les murs de la mêmes couleur sur la même ligne
     // modification du tableau du niveau : quand mur explosé, deviens sol
     function wallExplosed(posX:Int, posY:Int) {
         // type de bomb : couleur ?
-        explodedWallProx(BLUE, index);
-        levelData.map[index] = TileKind.GROUND;
+        
+        var indexT = Math.floor(posX/16) + Math.floor(posY/16) * levelData.columns;
+        var row = indexT % 8;
+        var col = Math.floor(indexT / 8);
+
+        bomb = new Bomb(assets);
+        bomb.pos(
+            row * TILE_SIZE,
+            col * TILE_SIZE
+        );
+
+        bomb.depth = player.depth;
+        container.add(bomb);
+        bomb.animation = "EXPLOSION_RED_LOOP";
+
+        // bomb.animation = 'EXPLOSION_RED_RAY';
+        explodedWallProx(BLUE, indexT);
+        levelData.map[indexT] = TileKind.GROUND;
     }
 
-    function explodedWallProx(typeWall:TileKind, index:Int) {
-        var row = index % 8;
-        var col = Math.floor(index / 8);
+    function explodedWallProx(typeWall:TileKind, indexT:Int) {
+        var row = indexT % 8;
+        var col = Math.floor(indexT / 8);
 
         var noWallExplosedL = false;
         var noWallExplosedR = false;
@@ -137,8 +175,14 @@ class GameScene extends Scene {
 
         while (!noWallExplosedL && !noWallExplosedR && !noWallExplosedDown && !noWallExplosedUp) {
             if (rowL > 0 && !noWallExplosedL) {
-                if(levelData.map[index-rowL] == typeWall) {
-                    levelData.map[index-rowL] = GROUND;
+                if(levelData.map[indexT-rowL] == typeWall) {
+                    var w = walls.items.filter(w -> (w.y == col * TILE_SIZE) && (w.x == rowL * TILE_SIZE))[0];
+                    w.animation = "WALL_BLUE_EXPLODE";
+                    w.loop = false;
+                    walls.remove(w);
+                    Timer.delay(this, 0.3, () -> w.destroy());
+
+                    levelData.map[indexT-rowL] = GROUND;
                     rowL -= 1;
                 }
                 else {
@@ -147,9 +191,15 @@ class GameScene extends Scene {
             }
 
             if (rowR < 8 && !noWallExplosedR) {
-                // trace(levelData.map[index+rowR]);
-                if(levelData.map[index+rowR] == typeWall) {
-                    levelData.map[index+rowR] = GROUND;
+                if(levelData.map[indexT+rowR] == typeWall) {
+                    var w = walls.items.filter(w -> (w.y == col * TILE_SIZE) && (w.x == rowR * TILE_SIZE))[0];
+                    w.animation = "WALL_BLUE_EXPLODE";
+                    w.loop = false;
+                    walls.remove(w);
+                    // w.active = false;
+                    Timer.delay(this, 0.3, () -> w.destroy());
+
+                    levelData.map[indexT+rowR] = GROUND;
                     rowR += 1;
                 }
                 else {
@@ -158,8 +208,14 @@ class GameScene extends Scene {
             }
 
             if (colL > 0 && !noWallExplosedUp) {
-                if(levelData.map[index-colL] == typeWall) {
-                    levelData.map[index-colL] = GROUND;
+                if(levelData.map[indexT-colL] == typeWall) {
+                    var w = walls.items.filter(w -> (w.y == colL * TILE_SIZE) && (w.x == row * TILE_SIZE))[0];
+                    w.animation = "WALL_BLUE_EXPLODE";
+                    w.loop = false;
+                    walls.remove(w);
+                    Timer.delay(this, 0.3, () -> w.destroy());
+
+                    levelData.map[indexT-colL] = GROUND;
                     colL -= 1;
                 }
                 else {
@@ -169,8 +225,14 @@ class GameScene extends Scene {
 
 
             if (colR < 8 && !noWallExplosedDown) {
-                if(levelData.map[index+colR] == typeWall) {
-                    levelData.map[index+colR] = GROUND;
+                if(levelData.map[indexT+(colR * 8)] == typeWall) {
+                    var w = walls.items.filter(w -> (w.y == colR * TILE_SIZE) && (w.x == row * TILE_SIZE))[0];
+                    w.animation = "WALL_BLUE_EXPLODE";
+                    w.loop = false;
+                    walls.remove(w);
+                    Timer.delay(this, 0.3, () -> w.destroy());
+
+                    levelData.map[indexT+colR] = GROUND;
                     colR += 1;
                 }
                 else {

@@ -77,6 +77,7 @@ class Player extends Sprite {
     var gridY:Int;
 
     @event function bombExplode(posX:Int, posY:Int);
+    @event function bombDisplay(posX:Int, posY:Int);
 
     @component var machine = new StateMachine<PlayerState>();
     var inputMap = new InputMap<PlayerInput>();
@@ -94,10 +95,6 @@ class Player extends Sprite {
         body.collideWorldBounds = true;
 
         sheet = assets.sheet(Sprites.BOMBERLIKE_CHARACTER);
-        // sheet.texture = assets.texture(Images.CHARACTERS);
-        // sheet.grid(24,24);
-        // // sheet.addGridAnimation('idle', [0], 0);
-        // sheet.addGridAnimation('idle', [0], 0);
 
         animation = 'IDLE_' + direction.toString();
         quad.roundTranslation = 1;
@@ -213,8 +210,12 @@ class Player extends Sprite {
 
     function dropBomb(delta:Float) {
         if(inputMap.pressed(BOMB)) {
-            // to do
-            Timer.delay(this, 3, () -> emitBombExplode(Math.floor(x), Math.floor(y)));
+            // trace('posX' + x + ', posy : ' + y);
+            var posX = Math.floor(x);
+            var posY = Math.floor(y);
+
+            emitBombDisplay(posX, posY);
+            Timer.delay(this, 3, () -> emitBombExplode(posX, posY));
         }
     }
 }
