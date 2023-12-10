@@ -50,7 +50,7 @@ class Player extends Sprite {
 
     var tileHeight:Int = 16;
 
-    var _map:Array<Int>;
+    public var _map:Array<Int>;
 
     var index:Int;
 
@@ -91,9 +91,6 @@ class Player extends Sprite {
         super.update(delta);
         
         index = Math.floor(x/16) + Math.floor(y/16) * 8;
-        trace('index :' + index);
-        trace('x :' + x);
-        trace('y :' + y);
         move(delta);
         dropBomb(delta);
     }

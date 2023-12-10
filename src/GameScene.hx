@@ -23,6 +23,7 @@ class GameScene extends Scene {
     var tilemap:Tilemap;
     var player:Player;
     var collid:Group<Collider>;
+    var index:Int;
 
     var ldtkName = Tilemaps.WORLD_MAP_GRID_VANIA_LAYOUT;
     
@@ -60,7 +61,7 @@ class GameScene extends Scene {
         super.update(delta);
 
         // final index_old = y * columns + x;
-        final index = Math.floor(player.x/16) + Math.floor(player.y/16) * columns;
+        index = Math.floor(player.x/16) + Math.floor(player.y/16) * columns;
         final tile:TileKind = map[index];
 
         // si bombe en attente
@@ -88,7 +89,7 @@ class GameScene extends Scene {
 
             level.createVisualsForEntities(tilemap);
             
-            trace(level.layerInstances[0].entityInstances[0].def.identifier);
+            // trace(level.layerInstances[0].entityInstances[0].def.identifier);
         });
     }
 
@@ -99,47 +100,79 @@ class GameScene extends Scene {
         player.pos(0,0);
         add(player);
 
-        player.onceBombExplode(this, wallExplosed);
+        player.onBombExplode(this, wallExplosed);
     }
 
+    // si joueur alors joueur explose
+    // etape 1 : explose les murs alentour (x+-1 y+-1) : sans couleur
+    // etape 2 : explose tous les murs de la mêmes couleur sur la même ligne 
+    // modification du tableau du niveau : quand mur explosé, deviens sol 
     function wallExplosed(posX:Int, posY:Int) {
-        final index = Math.floor(posX/16) + Math.floor(posY/16);
-
-        trace(map);
-        explodedWallProx(map[index], index);
+        // type de bomb : couleur ?
+        explodedWallProx(BLUE, index);
         map[index] = TileKind.GROUND;
-        trace(index);
-        trace(map);
-        /*var quadB = quadList[index];
-        quadB.color = Color.RED;*/
     }
 
     function explodedWallProx(typeWall:Int, index:Int) {
         var row = index % 8;
         var col = Math.floor(index / 8);
 
-        var indexL = row - 1;
-        var indexR = row + 1;
-        while (indexL < 0 || indexR < 8) {
-            if (indexL < 0) {
-                if(map[indexL] == typeWall) {
-                    map[indexL] = GROUND;
+        var noWallExplosedL = false;
+        var noWallExplosedR = false;
+        var noWallExplosedUp = false;
+        var noWallExplosedDown = false;
+
+        var rowL = row - 1;
+        var rowR = row + 1;
+        var colL = col - 1;
+        var colR = col + 1;
+
+        while (!noWallExplosedL && !noWallExplosedR && !noWallExplosedDown && !noWallExplosedUp) {   
+            if (rowL > 0 && !noWallExplosedL) {
+                if(map[index-rowL] == typeWall) {
+                    map[index-rowL] = GROUND;
+                    rowL -= 1;
                 }
-                indexL -= 1;
+                else {
+                    noWallExplosedL = true;
+                }
+            }
+
+            if (rowR < 8 && !noWallExplosedR) {
+                trace(map[index+rowR]);
+                if(map[index+rowR] == typeWall) {
+                    map[index+rowR] = GROUND;
+                    rowR += 1;
+                }
+                else {
+                    noWallExplosedR = true;
+                }
             }
             
-            if (indexR < 8) {
-                if(map[indexR] == typeWall) {
-                    map[indexR] = GROUND;
+            if (colL > 0 && !noWallExplosedUp) {
+                if(map[index-colL] == typeWall) {
+                    map[index-colL] = GROUND;
+                    colL -= 1;
                 }
-                indexR += 1;
+                else {
+                    noWallExplosedUp = true;
+                }
+            }
+            
+
+            if (colR < 8 && !noWallExplosedDown) {
+                if(map[index+colR] == typeWall) {
+                    map[index+colR] = GROUND;
+                    colR += 1;
+                }
+                else {
+                    noWallExplosedDown = true;
+                }
             }
         }
+
+        player._map = map;
     }
-    // si joueur alors joueur explose
-    // etape 1 : explose les murs alentour (x+-1 y+-1) : sans couleur
-    // etape 2 : explose tous les murs de la mêmes couleur sur la même ligne 
-    // modification du tableau du niveau : quand mur explosé, deviens sol 
 
     function initMockMap() {
         quadList = new Array<Quad>();
