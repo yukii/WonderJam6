@@ -1,19 +1,15 @@
 package;
 
-import ceramic.Key;
-import clay.KeyCode;
-import ceramic.Asset;
+import ceramic.ImageAsset;
+import ceramic.SpriteSheetAnimation;
 import arcade.Body;
-import arcade.Direction;
-import ceramic.ArcadeWorld;
 import ceramic.Assets;
-import ceramic.Group;
 import ceramic.InputMap;
 import ceramic.Sprite;
 import ceramic.SpriteSheet;
 import ceramic.StateMachine;
-import ceramic.Tilemap;
-import ceramic.VisualArcadePhysics;
+import ceramic.Timer;
+import ceramic.AsepriteParser;
 
 enum abstract PlayerState(Int) {
 
@@ -23,9 +19,9 @@ enum abstract PlayerState(Int) {
     var DEFAULT;
 
     /**
-     * Player is jumping
+     * Player is BOMBing
      */
-    var JUMP;
+    var BOMB;
 
 }
 
@@ -42,7 +38,7 @@ enum abstract PlayerState(Int) {
 
     var UP;
 
-    var JUMP;
+    var BOMB;
 
 }
 
@@ -50,16 +46,20 @@ class Player extends Sprite {
     
     var playSpeed:Float = 50;
     
-    var tileWidth:Int = 18;
+    var tileWidth:Int = 16;
 
-    var tileHeight:Int = 18;
+    var tileHeight:Int = 16;
+
+    var imgAse:ImageAsset;
+
+    @event function bombExplode(posX:Int, posY:Int);
     
     @component var machine = new StateMachine<PlayerState>();
     var inputMap = new InputMap<PlayerInput>();
 
     public var dotBodyBottom(default, null) = new Body(0, 0, 2, 2);
 
-    public function new(assets:Assets) {
+    public function new(assets:Assets, map:Array<Int>) {
         super();
 
         autoComputeSize = false;
@@ -70,13 +70,14 @@ class Player extends Sprite {
         sheet = new SpriteSheet();
         sheet.texture = assets.texture(Images.CHARACTERS);
         sheet.grid(24,24);
+        // sheet.addGridAnimation('idle', [0], 0);
         sheet.addGridAnimation('idle', [0], 0);
         anchor(0.5,1);
         
-        animation = 'idle';
+        // animation = 'idle';
         quad.roundTranslation = 1;
         scaleX = -1;
-        size(18,22);
+        size(tileWidth,tileHeight);
         frameOffset(-3,-2);
 
         bindInput();
@@ -85,7 +86,8 @@ class Player extends Sprite {
     override function update(delta:Float) {
         super.update(delta);
         
-        testMove(delta);
+        move(delta);
+        dropBomb(delta);
     }
 
     function bindInput() {
@@ -96,7 +98,7 @@ class Player extends Sprite {
         inputMap.bindKeyCode(LEFT, LEFT);
         inputMap.bindKeyCode(DOWN, DOWN);
         inputMap.bindKeyCode(UP, UP);
-        inputMap.bindKeyCode(JUMP, SPACE);
+        inputMap.bindKeyCode(BOMB, SPACE);
         // We use scan code for these so that it
         // will work with non-qwerty layouts as well
         inputMap.bindScanCode(RIGHT, KEY_D);
@@ -114,11 +116,11 @@ class Player extends Sprite {
         inputMap.bindGamepadButton(LEFT, DPAD_LEFT);
         inputMap.bindGamepadButton(DOWN, DPAD_DOWN);
         inputMap.bindGamepadButton(UP, DPAD_UP);
-        inputMap.bindGamepadButton(JUMP, A);
+        inputMap.bindGamepadButton(BOMB, A);
 
     }
 
-    function testMove(delta:Float) {
+    function move(delta:Float) {
         var blockedDown = body.blockedDown;
         var canMoveLeftRight = (!inputMap.justPressed(DOWN) && !inputMap.justPressed(UP));
 
@@ -162,6 +164,13 @@ class Player extends Sprite {
         else {
             animation = 'idle';
             velocityY = 0;
+        }
+    }
+
+    function dropBomb(delta:Float) {
+        if(inputMap.pressed(BOMB)) {
+            // to do
+            Timer.delay(this, 3, () -> emitBombExplode(Math.floor(x), Math.floor(y)));
         }
     }
 }
