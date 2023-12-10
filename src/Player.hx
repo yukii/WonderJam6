@@ -116,7 +116,6 @@ class Player extends Sprite {
         index = gridY * _levelData.columns + gridX;
         move(delta);
         dropBomb(delta);
-
     }
 
     function bindInput() {
@@ -151,32 +150,11 @@ class Player extends Sprite {
 
     function move(delta:Float) {
         var blockedDown = body.blockedDown;
-        // var canMoveLeftRight = (!inputMap.justPressed(DOWN) && !inputMap.justPressed(UP));
 
         var canMoveUp = true;
         var canMoveDown = true;
         var canMoveLeft = true;
         var canMoveRight = true;
-
-        // var nextIndexUp = index - _levelData.columns;
-        // var nextIndexDown = index + _levelData.columns;
-        // var nextIndexLeft = index - 1;
-        // var nextIndexRight = index + 1;
-
-        // // trace("next : " + nextIndexUp + ", " + nextIndexDown + ", " + nextIndexLeft + ", " + nextIndexRight);
-
-        // if(gridY > 0 && _levelData.map[nextIndexUp] == 0) {
-        //     canMoveUp = true;
-        // }
-        // if(gridY < _levelData.rows - 1 && _levelData.map[nextIndexDown] == 0) {
-        //     canMoveDown = true;
-        // }
-        // if(gridX > 0 && _levelData.map[nextIndexLeft] == 0) {
-        //     canMoveLeft = true;
-        // }
-        // if(gridX < _levelData.columns - 1 && _levelData.map[nextIndexRight] == 0) {
-        //     canMoveRight = true;
-        // }
 
         if(inputMap.pressed(RIGHT)) {
             direction = RIGHT;

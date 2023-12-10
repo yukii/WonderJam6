@@ -34,6 +34,7 @@ class GameScene extends Scene {
 
     var grounds:Group<Ground>;
     var walls:Group<Wall>;
+    var voids:Group<Wall>;
 
     var container:Visual;
 
@@ -52,8 +53,7 @@ class GameScene extends Scene {
         // assets.texture(Images.TILES).filter = NEAREST;
         assets.texture(Images.CHARACTERS).filter = NEAREST;
 
-        initMockMap();
-        // initMap();
+        initMap();
         initPlayer();
         initPhysics();
     }
@@ -83,24 +83,7 @@ class GameScene extends Scene {
 
         // Collide walls with player
         app.arcade.world.collide(walls, player);
-
-    }
-
-    function initMap() {
-        tilemap = null;
-        var ldktData = assets.ldtk(ldtkName);
-        var level = ldktData.worlds[0].levels[0];
-
-        level.ensureLoaded(() -> {
-            tilemap = new Tilemap();
-            tilemap.depth = 1;
-            tilemap.tilemapData = level.ceramicTilemap;
-            add(tilemap);
-
-            level.createVisualsForEntities(tilemap);
-
-            // trace(level.layerInstances[0].entityInstances[0].def.identifier);
-        });
+        app.arcade.world.collide(voids, player);
     }
 
     function initPlayer() {
@@ -164,7 +147,7 @@ class GameScene extends Scene {
             }
 
             if (rowR < 8 && !noWallExplosedR) {
-                trace(levelData.map[index+rowR]);
+                // trace(levelData.map[index+rowR]);
                 if(levelData.map[index+rowR] == typeWall) {
                     levelData.map[index+rowR] = GROUND;
                     rowR += 1;
@@ -196,13 +179,16 @@ class GameScene extends Scene {
             }
         }
 
+        // trace(levelData.map);
+
         // Jérémy : tableau modifié, pas besoin de le ré-assigner
         //player._map = map;
     }
 
-    function initMockMap() {
+    function initMap() {
         grounds = new Group('ground');
         walls = new Group('wall');
+        voids = new Group('voidground');
 
         container = new Visual();
         container.size(levelData.columns * TILE_SIZE, levelData.rows * TILE_SIZE);
@@ -227,6 +213,17 @@ class GameScene extends Scene {
                     container.add(ground);
                     grounds.add(ground);
                 }
+                if(tile == VOID) {
+                    // void tile
+                    var void = new Wall(assets, tile);
+                    void.pos(
+                        col * TILE_SIZE,
+                        row * TILE_SIZE
+                    );
+                    void.depth = DEPTH_GROUND + row * levelData.rows + col * 0.1;
+                    container.add(void);
+                    voids.add(void);
+                }
 
                 if (tile == RED || tile == GREEN || tile == BLUE || tile == YELLOW) {
                     // Wall tile
@@ -242,45 +239,5 @@ class GameScene extends Scene {
 
             }
         }
-
-        // // wall
-        // var quad1 = new Quad();
-        // quad1.size(16, 16);
-        // quad1.pos(48, 0);
-        // quad1.color = Color.BLUE;
-        // quad1.anchor(0,0);
-
-        // // ground
-        // var quad2 = new Quad();
-        // quad2.size(16, 16);
-        // quad2.pos(0, 0);
-        // quad2.color = Color.YELLOW;
-        // quad2.anchor(0,0);
-
-        // // wall
-        // var quad3 = new Quad();
-        // quad3.size(16, 16);
-        // quad3.pos(32, 0);
-        // quad3.color = Color.BLUE;
-        // quad3.anchor(0,0);
-
-        // // ground
-        // var quad4 = new Quad();
-        // quad4.size(16, 16);
-        // quad4.pos(16, 0);
-        // quad4.color = Color.YELLOW;
-        // quad4.anchor(0,0);
-
-
-        // add(quad4);
-        // quadList.push(quad4);
-        // add(quad2);
-        // quadList.push(quad2);
-
-        // add(quad1);
-        // quadList.push(quad1);
-        // add(quad3);
-        // quadList.push(quad3);
-
     }
 }
