@@ -60,7 +60,7 @@ class GameScene extends Scene {
         super.update(delta);
 
         // final index_old = y * columns + x;
-        final index = Math.floor(player.x/16) + Math.floor(player.y/16);
+        final index = Math.floor(player.x/16) + Math.floor(player.y/16) * columns;
         final tile:TileKind = map[index];
 
         // si bombe en attente

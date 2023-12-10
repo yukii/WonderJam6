@@ -50,7 +50,9 @@ class Player extends Sprite {
 
     var tileHeight:Int = 16;
 
-    var imgAse:ImageAsset;
+    var _map:Array<Int>;
+
+    var index:Int;
 
     @event function bombExplode(posX:Int, posY:Int);
     
@@ -61,6 +63,8 @@ class Player extends Sprite {
 
     public function new(assets:Assets, map:Array<Int>) {
         super();
+        
+        _map = map;
 
         autoComputeSize = false;
 
@@ -86,6 +90,10 @@ class Player extends Sprite {
     override function update(delta:Float) {
         super.update(delta);
         
+        index = Math.floor(x/16) + Math.floor(y/16) * 8;
+        trace('index :' + index);
+        trace('x :' + x);
+        trace('y :' + y);
         move(delta);
         dropBomb(delta);
     }
@@ -122,9 +130,34 @@ class Player extends Sprite {
 
     function move(delta:Float) {
         var blockedDown = body.blockedDown;
-        var canMoveLeftRight = (!inputMap.justPressed(DOWN) && !inputMap.justPressed(UP));
+        // var canMoveLeftRight = (!inputMap.justPressed(DOWN) && !inputMap.justPressed(UP));
 
-        if(inputMap.pressed(RIGHT) && canMoveLeftRight) {
+        var canMoveUp = false;
+        var canMoveDown = false;
+        var canMoveLeft = false;
+        var canMoveRight = false;
+
+        var nextIndexUp = index - 8;
+        var nextIndexDown = index + 8;
+        var nextIndexLeft = index - 1;
+        var nextIndexRight = index + 1;
+
+        // trace("next : " + nextIndexUp + ", " + nextIndexDown + ", " + nextIndexLeft + ", " + nextIndexRight);
+
+        if(_map[nextIndexUp] == 0) {
+            canMoveUp = true;
+        }
+        if(_map[nextIndexDown] == 0) {
+            canMoveDown = true;
+        }
+        if(_map[nextIndexLeft] == 0) {
+            canMoveLeft = true;
+        }
+        if(_map[nextIndexRight] == 0) {
+            canMoveRight = true;
+        }
+
+        if(inputMap.pressed(RIGHT) && canMoveRight) {
             velocityX = playSpeed;
             if (machine.state == DEFAULT) {
                 // animation
@@ -132,7 +165,7 @@ class Player extends Sprite {
             }
             scaleX = -1;
         }
-        else if(inputMap.pressed(LEFT) && canMoveLeftRight) {
+        else if(inputMap.pressed(LEFT) && canMoveLeft) {
             velocityX = -playSpeed;
             if (machine.state == DEFAULT) {
                 // animation
@@ -145,7 +178,7 @@ class Player extends Sprite {
             velocityX = 0;
         }
 
-        if(inputMap.pressed(UP)) {
+        if(inputMap.pressed(UP) && canMoveUp) {
             velocityY = -playSpeed;
             if (machine.state == DEFAULT) {
                 // animation
@@ -153,7 +186,7 @@ class Player extends Sprite {
             }
             scaleX = 1;
         }
-        else if(inputMap.pressed(DOWN)) {
+        else if(inputMap.pressed(DOWN) && canMoveDown) {
             velocityY = playSpeed;
             if (machine.state == DEFAULT) {
                 // animation
