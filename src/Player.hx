@@ -1,15 +1,35 @@
 package;
 
-import ceramic.ImageAsset;
-import ceramic.SpriteSheetAnimation;
 import arcade.Body;
+import ceramic.AsepriteParser;
 import ceramic.Assets;
+import ceramic.ImageAsset;
 import ceramic.InputMap;
 import ceramic.Sprite;
 import ceramic.SpriteSheet;
+import ceramic.SpriteSheetAnimation;
 import ceramic.StateMachine;
 import ceramic.Timer;
-import ceramic.AsepriteParser;
+import ceramic.macros.EnumAbstractMacro;
+
+using ceramic.SpritePlugin;
+
+enum abstract PlayerDirection(Int) {
+
+    var UP;
+
+    var RIGHT;
+
+    var DOWN;
+
+    var LEFT;
+
+    public function toString() {
+        // A macro to get a string from the enum abstract
+        return EnumAbstractMacro.toStringSwitch(PlayerDirection, abstract);
+    }
+
+}
 
 enum abstract PlayerState(Int) {
 
@@ -43,56 +63,60 @@ enum abstract PlayerState(Int) {
 }
 
 class Player extends Sprite {
-    
-    var playSpeed:Float = 50;
-    
-    var tileWidth:Int = 16;
 
-    var tileHeight:Int = 16;
+    var playSpeed:Float = 80;
 
-    public var _map:Array<Int>;
+    var direction:PlayerDirection = RIGHT;
+
+    public var _levelData:LevelData;
 
     var index:Int;
 
+    var gridX:Int;
+
+    var gridY:Int;
+
     @event function bombExplode(posX:Int, posY:Int);
-    
+
     @component var machine = new StateMachine<PlayerState>();
     var inputMap = new InputMap<PlayerInput>();
 
     public var dotBodyBottom(default, null) = new Body(0, 0, 2, 2);
 
-    public function new(assets:Assets, map:Array<Int>) {
+    public function new(assets:Assets, levelData:LevelData) {
         super();
-        
-        _map = map;
+
+        _levelData = levelData;
 
         autoComputeSize = false;
 
         initArcadePhysics();
         body.collideWorldBounds = true;
 
-        sheet = new SpriteSheet();
-        sheet.texture = assets.texture(Images.CHARACTERS);
-        sheet.grid(24,24);
+        sheet = assets.sheet(Sprites.BOMBERLIKE_CHARACTER);
+        // sheet.texture = assets.texture(Images.CHARACTERS);
+        // sheet.grid(24,24);
+        // // sheet.addGridAnimation('idle', [0], 0);
         // sheet.addGridAnimation('idle', [0], 0);
-        sheet.addGridAnimation('idle', [0], 0);
-        anchor(0.5,1);
-        
-        // animation = 'idle';
+
+        animation = 'IDLE_' + direction.toString();
         quad.roundTranslation = 1;
-        scaleX = -1;
-        size(tileWidth,tileHeight);
-        frameOffset(-3,-2);
+        size(TILE_SIZE - 6, TILE_SIZE - 9);
+        frameOffset(-(16 + 3), -(16 + 4));
 
         bindInput();
+
+        machine.state = DEFAULT;
     }
 
-    override function update(delta:Float) {
-        super.update(delta);
-        
-        index = Math.floor(x/16) + Math.floor(y/16) * 8;
+    public function updatePlayer(delta:Float) {
+
+        gridX = Math.floor(x/TILE_SIZE);
+        gridY = Math.floor(y/TILE_SIZE);
+        index = gridY * _levelData.columns + gridX;
         move(delta);
         dropBomb(delta);
+
     }
 
     function bindInput() {
@@ -129,72 +153,84 @@ class Player extends Sprite {
         var blockedDown = body.blockedDown;
         // var canMoveLeftRight = (!inputMap.justPressed(DOWN) && !inputMap.justPressed(UP));
 
-        var canMoveUp = false;
-        var canMoveDown = false;
-        var canMoveLeft = false;
-        var canMoveRight = false;
+        var canMoveUp = true;
+        var canMoveDown = true;
+        var canMoveLeft = true;
+        var canMoveRight = true;
 
-        var nextIndexUp = index - 8;
-        var nextIndexDown = index + 8;
-        var nextIndexLeft = index - 1;
-        var nextIndexRight = index + 1;
+        // var nextIndexUp = index - _levelData.columns;
+        // var nextIndexDown = index + _levelData.columns;
+        // var nextIndexLeft = index - 1;
+        // var nextIndexRight = index + 1;
 
-        // trace("next : " + nextIndexUp + ", " + nextIndexDown + ", " + nextIndexLeft + ", " + nextIndexRight);
+        // // trace("next : " + nextIndexUp + ", " + nextIndexDown + ", " + nextIndexLeft + ", " + nextIndexRight);
 
-        if(_map[nextIndexUp] == 0) {
-            canMoveUp = true;
-        }
-        if(_map[nextIndexDown] == 0) {
-            canMoveDown = true;
-        }
-        if(_map[nextIndexLeft] == 0) {
-            canMoveLeft = true;
-        }
-        if(_map[nextIndexRight] == 0) {
-            canMoveRight = true;
-        }
+        // if(gridY > 0 && _levelData.map[nextIndexUp] == 0) {
+        //     canMoveUp = true;
+        // }
+        // if(gridY < _levelData.rows - 1 && _levelData.map[nextIndexDown] == 0) {
+        //     canMoveDown = true;
+        // }
+        // if(gridX > 0 && _levelData.map[nextIndexLeft] == 0) {
+        //     canMoveLeft = true;
+        // }
+        // if(gridX < _levelData.columns - 1 && _levelData.map[nextIndexRight] == 0) {
+        //     canMoveRight = true;
+        // }
 
-        if(inputMap.pressed(RIGHT) && canMoveRight) {
-            velocityX = playSpeed;
+        if(inputMap.pressed(RIGHT)) {
+            direction = RIGHT;
+            if (canMoveRight) {
+                velocityX = playSpeed;
+            }
             if (machine.state == DEFAULT) {
                 // animation
-                animation = 'idle';
+                animation = 'WALK_' + direction.toString();
             }
-            scaleX = -1;
         }
-        else if(inputMap.pressed(LEFT) && canMoveLeft) {
-            velocityX = -playSpeed;
+        else if(inputMap.pressed(LEFT)) {
+            direction = LEFT;
+            if (canMoveLeft) {
+                velocityX = -playSpeed;
+            }
             if (machine.state == DEFAULT) {
                 // animation
-                animation = 'idle';
+                animation = 'WALK_' + direction.toString();
             }
-            scaleX = 1;
         }
         else {
-            animation = 'idle';
             velocityX = 0;
         }
 
-        if(inputMap.pressed(UP) && canMoveUp) {
-            velocityY = -playSpeed;
+        if(inputMap.pressed(UP)) {
+            direction = UP;
+            if (canMoveUp) {
+                velocityY = -playSpeed;
+            }
             if (machine.state == DEFAULT) {
                 // animation
-                animation = 'idle';
+                animation = 'WALK_' + direction.toString();
             }
-            scaleX = 1;
         }
-        else if(inputMap.pressed(DOWN) && canMoveDown) {
-            velocityY = playSpeed;
+        else if(inputMap.pressed(DOWN)) {
+            direction = DOWN;
+            if (canMoveDown) {
+                velocityY = playSpeed;
+            }
             if (machine.state == DEFAULT) {
                 // animation
-                animation = 'idle';
+                animation = 'WALK_' + direction.toString();
             }
-            scaleX = -1;
         }
         else {
-            animation = 'idle';
             velocityY = 0;
         }
+
+        if (!inputMap.pressed(UP) && !inputMap.pressed(RIGHT) && !inputMap.pressed(DOWN) && !inputMap.pressed(LEFT)) {
+            animation = 'IDLE_' + direction.toString();
+        }
+
+        depth = DEPTH_WALL + index + 0.15;
     }
 
     function dropBomb(delta:Float) {

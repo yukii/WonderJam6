@@ -1,0 +1,8 @@
+
+final TILE_SIZE = 16;
+
+final DEPTH_GROUND = 1000;
+
+final DEPTH_WALL = 2000;
+
+final SHEET_FRAME_SIZE = 48;
