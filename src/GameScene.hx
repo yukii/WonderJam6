@@ -17,12 +17,6 @@ class GameScene extends Scene {
     var player:Player;
     var index:Int;
 
-    var bomb:Bomb;
-    var bombRayL:Bomb;
-    var bombRayR:Bomb;
-    var bombRayUp:Bomb;
-    var bombRayDown:Bomb;
-
     var ldtkName = Tilemaps.WORLD_MAP_GRID_VANIA_LAYOUT;
 
     var levelData:LevelData = {
@@ -149,7 +143,7 @@ class GameScene extends Scene {
         var row = indexT % 8;
         var col = Math.floor(indexT / 8);
 
-        bomb = new Bomb(assets);
+        var bomb = new Bomb(assets);
         bomb.pos(
             row * TILE_SIZE,
             col * TILE_SIZE
@@ -159,7 +153,7 @@ class GameScene extends Scene {
         container.add(bomb);
         bomb.animation = "EXPLOSION_RED_LOOP";
         
-        bombRayL = new Bomb(assets);
+        var bombRayL = new Bomb(assets);
         bombRayL.pos(
             (row-1) * TILE_SIZE,
             col * TILE_SIZE
@@ -169,7 +163,7 @@ class GameScene extends Scene {
         container.add(bombRayL);
         bombRayL.animation = 'EXPLOSION_RED_RAY';
         
-        bombRayR = new Bomb(assets);
+        var bombRayR = new Bomb(assets);
         bombRayR.pos(
             (row+1) * TILE_SIZE,
             col * TILE_SIZE
@@ -180,7 +174,7 @@ class GameScene extends Scene {
         bombRayR.animation = 'EXPLOSION_RED_RAY';
 
         
-        bombRayUp = new Bomb(assets);
+        var bombRayUp = new Bomb(assets);
         bombRayUp.pos(
             row * TILE_SIZE,
             (col-1) * TILE_SIZE
@@ -192,7 +186,7 @@ class GameScene extends Scene {
         container.add(bombRayUp);
         bombRayUp.animation = 'EXPLOSION_RED_RAY';
         
-        bombRayDown = new Bomb(assets);
+        var bombRayDown = new Bomb(assets);
         bombRayDown.pos(
             row * TILE_SIZE,
             (col+1) * TILE_SIZE
@@ -205,11 +199,11 @@ class GameScene extends Scene {
         bombRayDown.animation = 'EXPLOSION_RED_RAY';
 
 
-        explodedWallProx(BLUE, row, col);
+        explodedWallProx(BLUE, row, col, bomb, bombRayL, bombRayR, bombRayUp, bombRayDown);
         levelData.map[indexT] = TileKind.GROUND;
     }
 
-    function explodedWallProx(typeWall:TileKind, row:Int, col:Int) {
+    function explodedWallProx(typeWall:TileKind, row:Int, col:Int, bomb:Bomb, bombRayL:Bomb, bombRayR:Bomb, bombRayUp:Bomb, bombRayDown:Bomb) {
         var noWallExplosedL = false;
         var noWallExplosedR = false;
         var noWallExplosedUp = false;
@@ -232,7 +226,9 @@ class GameScene extends Scene {
 				
         	        w.loop = false;
         	        walls.remove(w);
-        	        Timer.delay(this, 0.3, () -> w.destroy());
+					((w:Wall) -> {
+						Timer.delay(this, 0.3, () -> w.destroy());
+					})(w);
 				
         	        levelData.map[indexL] = GROUND;
 
@@ -257,7 +253,9 @@ class GameScene extends Scene {
 				
         	        w.loop = false;
         	        walls.remove(w);
-        	        Timer.delay(this, 0.3, () -> w.destroy());
+					((w:Wall) -> {
+						Timer.delay(this, 0.3, () -> w.destroy());
+					})(w);
 				
         	        levelData.map[indexR] = GROUND;
         	    }
@@ -281,7 +279,9 @@ class GameScene extends Scene {
 				
         	        w.loop = false;
         	        walls.remove(w);
-        	        Timer.delay(this, 0.3, () -> w.destroy());
+					((w:Wall) -> {
+						Timer.delay(this, 0.3, () -> w.destroy());
+					})(w);
 				
         	        levelData.map[indexUp] = GROUND;
         	    }
@@ -304,7 +304,9 @@ class GameScene extends Scene {
 				
         	        w.loop = false;
         	        walls.remove(w);
-        	        Timer.delay(this, 0.3, () -> w.destroy());
+					((w:Wall) -> {
+						Timer.delay(this, 0.3, () -> w.destroy());
+					})(w);
 				
         	        levelData.map[indexDown] = GROUND;
         	    }
@@ -317,10 +319,9 @@ class GameScene extends Scene {
         	else {
         	    noWallExplosedDown = true;
         	}
-
         }
 
-        Timer.delay(this, 0.3, () -> { bomb.destroy(); bombRayL.destroy();  bombRayR.destroy(); bombRayDown.destroy(); bombRayUp.destroy(); });
+        Timer.delay(this, 0.5, () -> { bomb.destroy(); bombRayL.destroy();  bombRayR.destroy(); bombRayDown.destroy(); bombRayUp.destroy(); });
 
         var g = grounds.items.filter(g -> (g.y == col * TILE_SIZE) && (g.x == row * TILE_SIZE))[0];
         g.animation = 'GROUND';
