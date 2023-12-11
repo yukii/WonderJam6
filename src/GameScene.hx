@@ -220,106 +220,105 @@ class GameScene extends Scene {
         var colUp = col - 1;
         var colDown = col + 1;
         
-        // gauche
-        if (rowL >= 0) {
-            var indexL = rowL + col * levelData.columns;
-            if(levelData.map[indexL] == typeWall) {
-                var w = walls.items.filter(w -> (w.y == col * TILE_SIZE) && (w.x == rowL * TILE_SIZE))[0];
-                
-                w.animation = "WALL_BLUE_EXPLODE";
+        while(!noWallExplosedL || !noWallExplosedR || !noWallExplosedUp || !noWallExplosedDown) {
+
+        	// gauche
+        	if (rowL >= 0) {
+        	    var indexL = rowL + col * levelData.columns;
+        	    if(levelData.map[indexL] == typeWall) {
+        	        var w = walls.items.filter(w -> (w.y == col * TILE_SIZE) && (w.x == rowL * TILE_SIZE))[0];
+				
+        	        w.animation = "WALL_BLUE_EXPLODE";
+				
+        	        w.loop = false;
+        	        walls.remove(w);
+        	        Timer.delay(this, 0.3, () -> w.destroy());
+				
+        	        levelData.map[indexL] = GROUND;
+
+        	    }
+
+        	    if(levelData.map[indexL] == typeWall || levelData.map[indexL] == GROUND || levelData.map[indexL] == VOID) {
+        	        bombRayL.scaleX += 1;
+        	    }
+			
+        	    rowL -= 1;
+        	}
+        	else {
+        	    noWallExplosedL = true;
+        	}
         
-                w.loop = false;
-                walls.remove(w);
-                Timer.delay(this, 0.3, () -> w.destroy());
-        
-                levelData.map[indexL] = GROUND;
+        	// droite
+        	if (rowR < 8) {
+        	    var indexR = rowR + col * levelData.columns;
+        	    if(levelData.map[indexR] == typeWall) {
+        	        var w = walls.items.filter(w -> (w.y == col * TILE_SIZE) && (w.x == rowR * TILE_SIZE))[0];
+        	        w.animation = "WALL_BLUE_EXPLODE";
+				
+        	        w.loop = false;
+        	        walls.remove(w);
+        	        Timer.delay(this, 0.3, () -> w.destroy());
+				
+        	        levelData.map[indexR] = GROUND;
+        	    }
+			
+        	    if(levelData.map[indexR] == typeWall || levelData.map[indexR] == GROUND || levelData.map[indexR] == VOID) {
+        	        bombRayR.scaleX += 1;
+        	    }
+        	    rowR += 1;
+        	}
+        	else {
+        	    noWallExplosedR = true;
+        	}
 
-            }
+        	// haut
+        	if (colUp >= 0) {
+        	    var indexUp = row + colUp * levelData.columns;
+        	    if(levelData.map[indexUp] == typeWall) {
+        	        var w = walls.items.filter(w -> (w.y == colUp * TILE_SIZE) && (w.x == row * TILE_SIZE))[0];
+				
+        	        w.animation = "WALL_BLUE_EXPLODE";
+				
+        	        w.loop = false;
+        	        walls.remove(w);
+        	        Timer.delay(this, 0.3, () -> w.destroy());
+				
+        	        levelData.map[indexUp] = GROUND;
+        	    }
+			
+        	    if(levelData.map[indexUp] == typeWall || levelData.map[indexUp] == GROUND || levelData.map[indexUp] == VOID) {
+        	        bombRayUp.scaleX += 1;
+        	    }
+        	    colUp -= 1;
+        	}
+        	else {
+        	    noWallExplosedUp = true;
+        	}
 
-            if(levelData.map[indexL] == typeWall || levelData.map[indexL] == GROUND || levelData.map[indexL] == VOID) {
-                bombRayL.scaleX += 1;
-            }
-            
-            rowL -= 1;
+        	// bas
+        	if (colDown < 8) {
+        	    var indexDown = row + colDown * levelData.columns;
+        	    if(levelData.map[indexDown] == typeWall) {
+        	        var w = walls.items.filter(w -> (w.y == colDown * TILE_SIZE) && (w.x == row * TILE_SIZE))[0];                   
+        	        w.animation = "WALL_BLUE_EXPLODE";
+				
+        	        w.loop = false;
+        	        walls.remove(w);
+        	        Timer.delay(this, 0.3, () -> w.destroy());
+				
+        	        levelData.map[indexDown] = GROUND;
+        	    }
+			
+        	    if(levelData.map[indexDown] == typeWall || levelData.map[indexDown] == GROUND || levelData.map[indexDown] == VOID) {
+        	        bombRayDown.scaleX += 1;
+        	    }
+        	    colDown += 1;
+        	}
+        	else {
+        	    noWallExplosedDown = true;
+        	}
+
         }
-        else {
-            noWallExplosedL = true;
-        }
-        
-        // droite
-        if (rowR < 8) {
-            var indexR = rowR + col * levelData.columns;
-            if(levelData.map[indexR] == typeWall) {
-                var w = walls.items.filter(w -> (w.y == col * TILE_SIZE) && (w.x == rowR * TILE_SIZE))[0];
-                w.animation = "WALL_BLUE_EXPLODE";
-    
-                w.loop = false;
-                walls.remove(w);
-                Timer.delay(this, 0.3, () -> w.destroy());
-    
-                levelData.map[indexR] = GROUND;
-            }
-            
-            if(levelData.map[indexR] == typeWall || levelData.map[indexR] == GROUND || levelData.map[indexR] == VOID) {
-                bombRayR.scaleX += 1;
-            }
-            rowR += 1;
-        }
-        else {
-            noWallExplosedR = true;
-        }
-
-        // haut
-        if (colUp >= 0) {
-            var indexUp = row + colUp * levelData.columns;
-            if(levelData.map[indexUp] == typeWall) {
-                var w = walls.items.filter(w -> (w.y == colUp * TILE_SIZE) && (w.x == row * TILE_SIZE))[0];
-                       
-                w.animation = "WALL_BLUE_EXPLODE";
-    
-                w.loop = false;
-                walls.remove(w);
-                Timer.delay(this, 0.3, () -> w.destroy());
-    
-                levelData.map[indexUp] = GROUND;
-            }
-            
-            if(levelData.map[indexUp] == typeWall || levelData.map[indexUp] == GROUND || levelData.map[indexUp] == VOID) {
-                bombRayUp.scaleX += 1;
-            }
-            colUp -= 1;
-        }
-        else {
-            noWallExplosedUp = true;
-        }
-
-        // bas
-        if (colDown < 8) {
-            var indexDown = row + colDown * levelData.columns;
-            if(levelData.map[indexDown] == typeWall) {
-                var w = walls.items.filter(w -> (w.y == colDown * TILE_SIZE) && (w.x == row * TILE_SIZE))[0];                   
-                w.animation = "WALL_BLUE_EXPLODE";
-    
-                w.loop = false;
-                walls.remove(w);
-                Timer.delay(this, 0.3, () -> w.destroy());
-    
-                levelData.map[indexDown] = GROUND;
-            }
-            
-            if(levelData.map[indexDown] == typeWall || levelData.map[indexDown] == GROUND || levelData.map[indexDown] == VOID) {
-                bombRayDown.scaleX += 1;
-            }
-            colDown += 1;
-        }
-        else {
-            noWallExplosedDown = true;
-        }
-
-
-
-
-
 
         Timer.delay(this, 0.3, () -> { bomb.destroy(); bombRayL.destroy();  bombRayR.destroy(); bombRayDown.destroy(); bombRayUp.destroy(); });
 
