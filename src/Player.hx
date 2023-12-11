@@ -221,7 +221,7 @@ class Player extends Sprite {
 
             emitBombDisplay(posX, posY);
             Timer.delay(this, 3, () -> emitBombExplode(posX, posY));
-            Timer.delay(this, 1, () -> canDropBomb = true);
+            Timer.delay(this, 4, () -> canDropBomb = true);
         }
     }
 }
