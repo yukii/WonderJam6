@@ -76,6 +76,8 @@ class Player extends Sprite {
 
     var gridY:Int;
 
+    var canDropBomb:Bool;
+
     @event function bombExplode(posX:Int, posY:Int);
     @event function bombDisplay(posX:Int, posY:Int);
 
@@ -86,6 +88,8 @@ class Player extends Sprite {
 
     public function new(assets:Assets, levelData:LevelData) {
         super();
+
+        canDropBomb = true;
 
         _levelData = levelData;
 
@@ -209,13 +213,15 @@ class Player extends Sprite {
     }
 
     function dropBomb(delta:Float) {
-        if(inputMap.pressed(BOMB)) {
+        if(inputMap.pressed(BOMB) && canDropBomb) {
+            canDropBomb = false;
             // trace('posX' + x + ', posy : ' + y);
             var posX = Math.floor(x);
             var posY = Math.floor(y);
 
             emitBombDisplay(posX, posY);
             Timer.delay(this, 3, () -> emitBombExplode(posX, posY));
+            Timer.delay(this, 1, () -> canDropBomb = true);
         }
     }
 }
