@@ -78,8 +78,8 @@ class Player extends Sprite {
 
     var canDropBomb:Bool;
 
-    @event function bombExplode(posX:Int, posY:Int);
-    @event function bombDisplay(posX:Int, posY:Int);
+    @event function bombExplode(posX:Int, posY:Int, color:Int);
+    @event function bombDisplay(posX:Int, posY:Int, color:Int);
 
     @component var machine = new StateMachine<PlayerState>();
     var inputMap = new InputMap<PlayerInput>();
@@ -215,12 +215,14 @@ class Player extends Sprite {
     function dropBomb(delta:Float) {
         if(inputMap.pressed(BOMB) && canDropBomb) {
             canDropBomb = false;
-            // trace('posX' + x + ', posy : ' + y);
+
+            var color_bomb = Math.floor(Math.random() * 3) + 1;
+
             var posX = Math.floor(x);
             var posY = Math.floor(y);
 
-            emitBombDisplay(posX, posY);
-            Timer.delay(this, 3, () -> emitBombExplode(posX, posY));
+            emitBombDisplay(posX, posY, color_bomb);
+            Timer.delay(this, 3, () -> emitBombExplode(posX, posY, color_bomb));
             Timer.delay(this, 4, () -> canDropBomb = true);
         }
     }

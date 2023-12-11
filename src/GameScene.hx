@@ -1,5 +1,6 @@
 package;
 
+import format.pex.Data.BlendFunction;
 import ceramic.Timer;
 import ceramic.Color;
 import ceramic.Group;
@@ -123,21 +124,56 @@ class GameScene extends Scene {
     }
 
     
-    function bombDisplay(posX:Int, posY:Int) {
+    function bombDisplay(posX:Int, posY:Int, color:Int) {
         var indexT = Math.floor(posX/16) + Math.floor(posY/16) * levelData.columns;
         var row = indexT % 8;
         var col = Math.floor(indexT / 8);
-        
+
+		var animation_title = "GROUND_TRIGGER_";
+		switch color {
+			case 0:
+				animation_title += "BLUE";
+			case 1:
+				animation_title += "GREEN";
+			case 2:
+				animation_title += "RED";
+			case 3:
+				animation_title += "YELLOW";
+			case _:
+				animation_title = "GROUND";
+		}
+
         var g = grounds.items.filter(g -> (g.y == col * TILE_SIZE) && (g.x == row * TILE_SIZE))[0];
-        g.animation = 'GROUND_TRIGGER_BLUE';
+        g.animation = animation_title;
     }
 
     // si joueur alors joueur explose
     // etape 1 : explose les murs alentour (x+-1 y+-1) : sans couleur
     // etape 2 : explose tous les murs de la mêmes couleur sur la même ligne
     // modification du tableau du niveau : quand mur explosé, deviens sol
-    function wallExplosed(posX:Int, posY:Int) {
-        // type de bomb : couleur ?
+    function wallExplosed(posX:Int, posY:Int, color:Int) {
+		
+		var animation_title = "EXPLOSION_";
+		var tileKind:TileKind;
+		switch color {
+			case 0:
+				animation_title += "BLUE";
+				tileKind = BLUE;
+			case 1:
+				animation_title += "GREEN";
+				tileKind = GREEN;
+			case 2:
+				animation_title += "RED";
+				tileKind = RED;
+			case 3:
+				animation_title += "YELLOW";
+				tileKind = YELLOW;
+			case _:
+				animation_title = "";
+				tileKind = GROUND;
+		}
+		
+		animation_title += "_LOOP";
         
         var indexT = Math.floor(posX/16) + Math.floor(posY/16) * levelData.columns;
         var row = indexT % 8;
@@ -151,7 +187,7 @@ class GameScene extends Scene {
 
         bomb.depth = player.depth;
         container.add(bomb);
-        bomb.animation = "EXPLOSION_RED_LOOP";
+        bomb.animation = animation_title;
         
         var bombRayL = new Bomb(assets);
         bombRayL.pos(
@@ -161,7 +197,7 @@ class GameScene extends Scene {
         bombRayL.depth = player.depth;
         bombRayL.scaleX = 0;
         container.add(bombRayL);
-        bombRayL.animation = 'EXPLOSION_RED_RAY';
+        bombRayL.animation = animation_title;
         
         var bombRayR = new Bomb(assets);
         bombRayR.pos(
@@ -171,7 +207,7 @@ class GameScene extends Scene {
         bombRayR.depth = player.depth;
         bombRayR.scaleX = 0;
         container.add(bombRayR);
-        bombRayR.animation = 'EXPLOSION_RED_RAY';
+        bombRayR.animation = animation_title;
 
         
         var bombRayUp = new Bomb(assets);
@@ -184,7 +220,7 @@ class GameScene extends Scene {
         bombRayUp.depth = player.depth;
         bombRayUp.scaleX = 0;
         container.add(bombRayUp);
-        bombRayUp.animation = 'EXPLOSION_RED_RAY';
+        bombRayUp.animation = animation_title;
         
         var bombRayDown = new Bomb(assets);
         bombRayDown.pos(
@@ -196,14 +232,29 @@ class GameScene extends Scene {
         bombRayDown.depth = player.depth;
         bombRayDown.scaleX = 0;
         container.add(bombRayDown);
-        bombRayDown.animation = 'EXPLOSION_RED_RAY';
+        bombRayDown.animation = animation_title;
 
 
-        explodedWallProx(BLUE, row, col, bomb, bombRayL, bombRayR, bombRayUp, bombRayDown);
+        explodedWallProx(tileKind, row, col, bomb, bombRayL, bombRayR, bombRayUp, bombRayDown);
         levelData.map[indexT] = TileKind.GROUND;
     }
 
     function explodedWallProx(typeWall:TileKind, row:Int, col:Int, bomb:Bomb, bombRayL:Bomb, bombRayR:Bomb, bombRayUp:Bomb, bombRayDown:Bomb) {
+
+		var colorStr;
+		switch typeWall {
+			case BLUE:
+				colorStr = 'BLUE';
+			case GREEN:
+				colorStr = 'GREEN';
+			case RED:
+				colorStr = 'RED';
+			case YELLOW:
+				colorStr = 'YELLOW';
+			case _:
+				colorStr = '';
+		}
+
         var noWallExplosedL = false;
         var noWallExplosedR = false;
         var noWallExplosedUp = false;
@@ -222,7 +273,7 @@ class GameScene extends Scene {
         	    if(levelData.map[indexL] == typeWall) {
         	        var w = walls.items.filter(w -> (w.y == col * TILE_SIZE) && (w.x == rowL * TILE_SIZE))[0];
 				
-        	        w.animation = "WALL_BLUE_EXPLODE";
+        	        w.animation = "WALL_" + colorStr + "_EXPLODE";
 				
         	        w.loop = false;
         	        walls.remove(w);
@@ -249,7 +300,7 @@ class GameScene extends Scene {
         	    var indexR = rowR + col * levelData.columns;
         	    if(levelData.map[indexR] == typeWall) {
         	        var w = walls.items.filter(w -> (w.y == col * TILE_SIZE) && (w.x == rowR * TILE_SIZE))[0];
-        	        w.animation = "WALL_BLUE_EXPLODE";
+        	        w.animation = "WALL_" + colorStr + "_EXPLODE";
 				
         	        w.loop = false;
         	        walls.remove(w);
@@ -275,7 +326,7 @@ class GameScene extends Scene {
         	    if(levelData.map[indexUp] == typeWall) {
         	        var w = walls.items.filter(w -> (w.y == colUp * TILE_SIZE) && (w.x == row * TILE_SIZE))[0];
 				
-        	        w.animation = "WALL_BLUE_EXPLODE";
+        	        w.animation = "WALL_" + colorStr + "_EXPLODE";
 				
         	        w.loop = false;
         	        walls.remove(w);
@@ -300,7 +351,8 @@ class GameScene extends Scene {
         	    var indexDown = row + colDown * levelData.columns;
         	    if(levelData.map[indexDown] == typeWall) {
         	        var w = walls.items.filter(w -> (w.y == colDown * TILE_SIZE) && (w.x == row * TILE_SIZE))[0];                   
-        	        w.animation = "WALL_BLUE_EXPLODE";
+        	        
+        	        w.animation = "WALL_" + colorStr + "_EXPLODE";
 				
         	        w.loop = false;
         	        walls.remove(w);
