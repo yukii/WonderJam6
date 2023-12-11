@@ -325,11 +325,6 @@ class GameScene extends Scene {
 
         var g = grounds.items.filter(g -> (g.y == col * TILE_SIZE) && (g.x == row * TILE_SIZE))[0];
         g.animation = 'GROUND';
-
-        // trace(levelData.map);
-
-        // Jérémy : tableau modifié, pas besoin de le ré-assigner
-        //player._map = map;
     }
 
     function initMap() {
